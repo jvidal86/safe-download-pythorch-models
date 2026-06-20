@@ -28,8 +28,12 @@ loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=4)
 
 ## Examples
 
-Runnable examples (quickstart, visualization, custom transforms, low-level
-download) are in [this Gist](https://gist.github.com/jvidal86/e49f05e4b2c506c5334a12a8318d190e).
+Runnable examples live in [`examples/`](examples/):
+
+- [`01_quickstart.py`](examples/01_quickstart.py) — fetch CIFAR-10 → `DataLoader`
+- [`02_visualize_cifar10.py`](examples/02_visualize_cifar10.py) — plot one sample per class
+- [`03_custom_transforms.py`](examples/03_custom_transforms.py) — augmentation, eval transform, one-hot labels
+- [`04_low_level_download.py`](examples/04_low_level_download.py) — `safe_download` + `extract` for any URL
 
 ## Available datasets
 
