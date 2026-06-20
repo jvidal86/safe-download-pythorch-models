@@ -85,21 +85,22 @@ def fetch(
     archive_path = root / info["filename"]
     extracted_path = root / info["extracted_dir"]
 
-    # ── Step 1: Download archive if not already verified ──────────────────────
-    safe_download(
-        info["url"],
-        archive_path,
-        expected_md5=info["md5"],
-        max_retries=max_retries,
-        show_progress=show_progress,
-    )
+    # ── Already extracted? Skip download + extraction entirely ────────────────
+    if extracted_path.exists():
+        logger.info("Already extracted: %s — skipping download.", extracted_path)
+    else:
+        # ── Step 1: Download archive if not already verified ──────────────────
+        safe_download(
+            info["url"],
+            archive_path,
+            expected_md5=info["md5"],
+            max_retries=max_retries,
+            show_progress=show_progress,
+        )
 
-    # ── Step 2: Extract if not already done ───────────────────────────────────
-    if not extracted_path.exists():
+        # ── Step 2: Extract ───────────────────────────────────────────────────
         logger.info("Extracting %s…", archive_path.name)
         extract(archive_path, root, remove_after=remove_archive)
-    else:
-        logger.info("Already extracted: %s", extracted_path)
 
     # ── Step 3: Load via torchvision (download=False — we did it ourselves) ───
     tv_class = _TV_MAP.get(key)
