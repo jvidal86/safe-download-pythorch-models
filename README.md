@@ -26,6 +26,11 @@ from torch.utils.data import DataLoader
 loader = DataLoader(train_ds, batch_size=64, shuffle=True, num_workers=4)
 ```
 
+## Examples
+
+Runnable examples (quickstart, visualization, custom transforms, low-level
+download) are in [this Gist](https://gist.github.com/jvidal86/e49f05e4b2c506c5334a12a8318d190e).
+
 ## Available datasets
 
 ```python
