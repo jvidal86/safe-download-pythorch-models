@@ -82,27 +82,6 @@ def fetch(
     info: DatasetInfo = registry_get(name)
     key = name.lower().replace("-", "_")
 
-    archive_path = root / info["filename"]
-    extracted_path = root / info["extracted_dir"]
-
-    # ── Already extracted? Skip download + extraction entirely ────────────────
-    if extracted_path.exists():
-        logger.info("Already extracted: %s — skipping download.", extracted_path)
-    else:
-        # ── Step 1: Download archive if not already verified ──────────────────
-        safe_download(
-            info["url"],
-            archive_path,
-            expected_md5=info["md5"],
-            max_retries=max_retries,
-            show_progress=show_progress,
-        )
-
-        # ── Step 2: Extract ───────────────────────────────────────────────────
-        logger.info("Extracting %s…", archive_path.name)
-        extract(archive_path, root, remove_after=remove_archive)
-
-    # ── Step 3: Load via torchvision (download=False — we did it ourselves) ───
     tv_class = _TV_MAP.get(key)
     if tv_class is None:
         raise NotImplementedError(
@@ -110,21 +89,51 @@ def fetch(
             "Use torchget.downloader.safe_download() directly."
         )
 
-    # STL10 uses 'split' instead of 'train'
-    if key == "stl10":
-        split = "train" if train else "test"
+    def _load() -> tvd.VisionDataset:
+        """Construct the dataset with download=False.
+
+        torchvision validates the MD5 of every required file in the extracted
+        directory and raises RuntimeError if anything is missing or corrupt.
+        """
+        # STL10 uses 'split' instead of 'train'
+        if key == "stl10":
+            return tv_class(
+                root=str(root),
+                split="train" if train else "test",
+                transform=transform,
+                target_transform=target_transform,
+                download=False,
+            )
         return tv_class(
             root=str(root),
-            split=split,
+            train=train,
             transform=transform,
             target_transform=target_transform,
             download=False,
         )
 
-    return tv_class(
-        root=str(root),
-        train=train,
-        transform=transform,
-        target_transform=target_transform,
-        download=False,
+    # ── Already present AND valid? Verify contents, skip download ──────────────
+    try:
+        ds = _load()
+        logger.info("Dataset verified on disk (%s) — skipping download.", key)
+        return ds
+    except (RuntimeError, FileNotFoundError):
+        logger.info("Dataset missing or failed integrity check — downloading %s.", key)
+
+    archive_path = root / info["filename"]
+
+    # ── Step 1: Download archive (resume + retry + MD5 verify) ────────────────
+    safe_download(
+        info["url"],
+        archive_path,
+        expected_md5=info["md5"],
+        max_retries=max_retries,
+        show_progress=show_progress,
     )
+
+    # ── Step 2: Extract ───────────────────────────────────────────────────────
+    logger.info("Extracting %s…", archive_path.name)
+    extract(archive_path, root, remove_after=remove_archive)
+
+    # ── Step 3: Load (download=False — we did it ourselves) ───────────────────
+    return _load()
