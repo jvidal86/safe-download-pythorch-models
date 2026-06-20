@@ -20,7 +20,9 @@ class DatasetInfo(TypedDict):
 REGISTRY: dict[str, DatasetInfo] = {
     # ── Vision ────────────────────────────────────────────────────────────────
     "cifar10": DatasetInfo(
-        url="https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
+        # Fast mirror of the canonical Toronto tarball (byte-identical, MD5-verified).
+        # Original (slow ~40 kB/s): https://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz
+        url="https://data.brainchip.com/dataset-mirror/cifar10/cifar-10-python.tar.gz",
         md5="c58f30108f718f92721af3b95e74349a",
         filename="cifar-10-python.tar.gz",
         extracted_dir="cifar-10-batches-py",
