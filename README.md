@@ -16,7 +16,8 @@ pip install -e .              # local editable install
 ```python
 from torchget import fetch
 
-# Downloads, verifies MD5, extracts — skips all steps if already done
+# Downloads, verifies MD5, extracts — and skips all of it if the data
+# is already on disk and passes integrity checks
 train_ds = fetch("cifar10", root="./data")
 test_ds  = fetch("cifar10", root="./data", train=False)
 
@@ -50,17 +51,43 @@ safe_download(
 extract("data/dataset.tar.gz", dest_dir="data/", remove_after=True)
 ```
 
-## fetch() parameters
+## `fetch()`
+
+`fetch(name, root="./data", *, train=True, ...)` is the high-level entry point.
+It returns a ready-to-use `torchvision` dataset, doing the minimum work needed:
+
+1. **Verify first.** It tries to load the dataset from `root` with no download.
+   torchvision checks the MD5 of every required file, so a missing or corrupt
+   file is detected — not just an empty/partial folder. If everything is valid,
+   `fetch` returns immediately and never touches the network.
+2. **Download if needed.** Otherwise it downloads the archive with resume,
+   exponential-backoff retries, and an MD5 check (CIFAR-10 uses a fast mirror of
+   the canonical tarball).
+3. **Extract** safely (path-traversal-filtered) and load the dataset.
+
+```python
+# Raw [0,1] images (e.g. for plotting) — override the default transform
+import torchvision.transforms as T
+raw = fetch("cifar10", transform=T.ToTensor())
+
+# Test split, drop the archive once extracted
+test = fetch("cifar10", train=False, remove_archive=True)
+```
+
+### Parameters
 
 | Parameter | Default | Description |
 |---|---|---|
 | `name` | required | Dataset name (`"cifar10"`, `"mnist"`, …) |
 | `root` | `"./data"` | Local storage directory |
-| `train` | `True` | Training vs test split |
-| `transform` | `ToTensor + Normalize` | torchvision transform |
+| `train` | `True` | Training vs test split (`split` for STL-10) |
+| `transform` | `ToTensor + Normalize` | torchvision transform applied to each sample |
+| `target_transform` | `None` | Transform applied to each label |
 | `max_retries` | `5` | Retry attempts on connection error |
 | `show_progress` | `True` | tqdm progress bar |
 | `remove_archive` | `False` | Delete `.tar.gz` after extraction |
+
+Returns a `torchvision.datasets.VisionDataset`, ready for `DataLoader`.
 
 ## Logging
 
