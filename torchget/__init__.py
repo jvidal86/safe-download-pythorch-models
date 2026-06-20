@@ -27,7 +27,7 @@ from .datasets import fetch
 from .downloader import download, extract, safe_download
 from .registry import list_datasets
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [
     "fetch",
     "download",

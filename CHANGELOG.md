@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-20
+
 ### Added
 - `examples/` folder with runnable scripts: quickstart, CIFAR-10 visualization,
   custom transforms / one-hot labels, and low-level `safe_download` + `extract`.
@@ -37,5 +39,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dataset registry: `cifar10`, `cifar100`, `mnist`, `fashion_mnist`, `stl10`.
 - `list_datasets()` helper.
 
-[Unreleased]: https://github.com/jvidal86/safe-download-pythorch-models/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jvidal86/safe-download-pythorch-models/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jvidal86/safe-download-pythorch-models/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jvidal86/safe-download-pythorch-models/releases/tag/v0.1.0
